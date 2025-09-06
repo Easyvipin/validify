@@ -4,7 +4,7 @@ import ActionBar from "@/components/ActionBar";
 
 export default async function ProjectsPage() {
   const projects = await getProjects();
-  console.log(projects);
+
   return (
     <div className="bg-gradient-to-b p-8">
       <ActionBar />
@@ -20,7 +20,7 @@ export default async function ProjectsPage() {
               name={project.name}
               desc={project.desc}
               logoUrl={project.logoUrl || ""}
-              category={project.projectCategories[0].category.name}
+              category={project.projectCategories[0]?.category.name}
               upvotes={10}
               downvotes={10}
               comments={10}

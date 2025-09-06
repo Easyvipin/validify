@@ -31,7 +31,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <DashboardNavigation />
-            <main className="h-[calc(100vh-7rem)] mx-auto w-full max-w-6xl my-4 px-4 md:px-0">
+            <main className="h-[calc(100vh-7rem)] mx-auto w-full max-w-6xl my-4 px-4 md:px-0 overflow-scroll scrollbar-none">
               {/* Your content here */}
               {children}
             </main>

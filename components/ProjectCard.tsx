@@ -11,7 +11,7 @@ type ProjectCardProps = {
   name: string;
   desc: string;
   logoUrl?: string;
-  category: string;
+  category?: string;
   upvotes: number;
   downvotes: number;
   comments: number;
@@ -33,9 +33,11 @@ export default function ProjectCard({
         <Card className="relative overflow-hidden rounded-2xl shadow-lg border border-border bg-card">
           {/* Category badges top right */}
           <div className="absolute top-3 right-3 flex gap-2 flex-wrap justify-end">
-            <Badge className="bg-secondary text-secondary-foreground">
-              {category}
-            </Badge>
+            {category && (
+              <Badge className="bg-secondary text-secondary-foreground">
+                {category}
+              </Badge>
+            )}
           </div>
 
           <CardHeader className="flex items-center gap-4">

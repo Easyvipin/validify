@@ -161,4 +161,11 @@
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
   }
+   .scrollbar-none {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
 }

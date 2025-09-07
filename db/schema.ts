@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { text, pgTable, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import {
+  text,
+  pgTable,
+  serial,
+  timestamp,
+  integer,
+  primaryKey,
+} from "drizzle-orm/pg-core";
 
 export const project = pgTable("project", {
   id: serial("id").primaryKey(),
@@ -51,6 +58,36 @@ export const projectCategory = pgTable("project_category", {
     .notNull(),
 });
 
+export const projectVote = pgTable(
+  "project_vote",
+  {
+    projectId: integer("project_id")
+      .references(() => project.id)
+      .notNull(),
+    userId: text("user_id")
+      .references(() => user.cUserId)
+      .notNull(),
+    type: text("type", { enum: ["upvote", "downvote"] }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.projectId, table.userId] })]
+);
+
+//
+// 👀 Click Tracking
+// For both logged-in users and guests
+//
+export const projectClick = pgTable("project_click", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .references(() => project.id)
+    .notNull(),
+  userId: text("user_id").references(() => user.cUserId),
+  sessionId: text("session_id"),
+  type: text("type", { enum: ["view", "link"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   projects: many(project),
   userCategories: many(userCategory),
@@ -63,6 +100,8 @@ export const projectRelations = relations(project, ({ one, many }) => ({
     references: [user.cUserId],
   }),
   projectCategories: many(projectCategory),
+  votes: many(projectVote),
+  clicks: many(projectClick),
 }));
 
 // 🏷️ Category relations
@@ -95,5 +134,27 @@ export const userCategoryRelations = relations(userCategory, ({ one }) => ({
   category: one(category, {
     fields: [userCategory.categoryId],
     references: [category.id],
+  }),
+}));
+
+export const projectVoteRelations = relations(projectVote, ({ one }) => ({
+  project: one(project, {
+    fields: [projectVote.projectId],
+    references: [project.id],
+  }),
+  user: one(user, {
+    fields: [projectVote.userId],
+    references: [user.cUserId],
+  }),
+}));
+
+export const projectClickRelations = relations(projectClick, ({ one }) => ({
+  project: one(project, {
+    fields: [projectClick.projectId],
+    references: [project.id],
+  }),
+  user: one(user, {
+    fields: [projectClick.userId],
+    references: [user.cUserId],
   }),
 }));

@@ -44,10 +44,25 @@ export async function GET(req: Request) {
       projectCategories: {
         with: { category: true },
       },
+      votes: true,
     },
     orderBy: (proj, { desc }) => [desc(proj.id)], // stable ordering
     limit,
   });
 
-  return NextResponse.json(projects);
+  const projectsWithVotes = projects.map((p) => {
+    const upvotes = p.votes.filter((v) => v.type === "upvote").length;
+    const downvotes = p.votes.filter((v) => v.type === "downvote").length;
+
+    const userVote = p.votes.find((v) => v.userId === userId)?.type || null;
+
+    return {
+      ...p,
+      upvotes,
+      downvotes,
+      userVote,
+    };
+  });
+
+  return NextResponse.json(projectsWithVotes);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +11,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { categoryIcon } from "@/utils/constants";
+import { InferSelectModel } from "drizzle-orm";
+import { VoteType } from "../action";
 
 export type ProjectFeedCardProps = {
   id: number;
@@ -24,25 +26,39 @@ export type ProjectFeedCardProps = {
   }[];
   upvotes: number;
   downvotes: number;
-  comments: number;
 };
 
 type Props = {
   project: ProjectFeedCardProps;
-  votes: Record<number, { count: number; userVote?: "up" | "down" }>;
-  handleVote: (id: number, type: "up" | "down") => void;
+  handleVote: (type: VoteType, projectId: number) => void;
+  userVote: VoteType | null;
 };
 
-export default function ProjectFeedCard({ project, votes, handleVote }: Props) {
-  console.log(project);
+export default function ProjectFeedCard({
+  project,
+  handleVote,
+  userVote,
+}: Props) {
   const router = useRouter();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetTab, setSheetTab] = useState<"details" | "comments">("details");
+  const [selectedVoteType, setSelectedVoteType] = useState<VoteType | null>();
 
   const openSheet = (tab: "details" | "comments") => {
     setSheetTab(tab);
     setSheetOpen(true);
   };
+
+  useEffect(() => {
+    setSelectedVoteType(userVote);
+  }, [userVote]);
+
+  const voteHandler = (type: VoteType, projectId: number) => {
+    setSelectedVoteType(type);
+    handleVote(type, projectId);
+  };
+
+  console.log(selectedVoteType);
 
   return (
     <>
@@ -100,40 +116,36 @@ export default function ProjectFeedCard({ project, votes, handleVote }: Props) {
               size="sm"
               className={`w-9 h-9 p-0 text-lg transition-all duration-200 
                 ${
-                  votes[project.id]?.userVote === "up"
-                    ? "bg-success hover:bg-success/90 text-success-foreground"
+                  selectedVoteType === "upvote"
+                    ? "bg-success hover:bg-success/90 text-success-foreground border-1 border-green-300"
                     : "bg-success/10 text-success hover:bg-success hover:text-success-foreground"
                 }`}
-              onClick={() => handleVote(project.id, "up")}
+              onClick={() => voteHandler("upvote", project.id)}
             >
               ▲
             </Button>
             <span className="font-semibold text-foreground min-w-8 text-center">
-              {votes[project.id]?.count ?? 0}
+              {project.upvotes}
             </span>
             <Button
               size="sm"
               className={`w-9 h-9 p-0 text-lg transition-all duration-200
                 ${
-                  votes[project.id]?.userVote === "down"
+                  selectedVoteType === "downvote"
                     ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                     : "bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
                 }`}
-              onClick={() => handleVote(project.id, "down")}
+              onClick={() => voteHandler("downvote", project.id)}
             >
               ▼
             </Button>
+            <span className="font-semibold text-foreground min-w-8 text-center">
+              {project.downvotes}
+            </span>
           </div>
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button
-              size="sm"
-              className="bg-card border border-border text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-200 text-sm"
-              onClick={() => openSheet("comments")}
-            >
-              💬 Comment
-            </Button>
             <Button
               size="sm"
               className="bg-card border border-border text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-200 text-sm"
@@ -159,18 +171,6 @@ export default function ProjectFeedCard({ project, votes, handleVote }: Props) {
                 👍 {project.upvotes} · 👎 {project.downvotes} · 💬{" "}
                 {project.comments}
               </div> */}
-            </div>
-          )}
-
-          {sheetTab === "comments" && (
-            <div className="mt-4 space-y-4">
-              <Textarea
-                placeholder="Share your thoughts..."
-                className="w-full resize-none bg-background border-border text-foreground"
-                rows={3}
-              />
-              <Button className="w-full">Post Comment</Button>
-              {/* Later: map comments here */}
             </div>
           )}
         </SheetContent>

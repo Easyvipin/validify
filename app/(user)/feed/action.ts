@@ -1,9 +1,10 @@
 "use server";
 
 import { db } from "@/db/drizzle";
-import { projectVote } from "@/db/schema";
+import { projectVote, userCategory } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq, InferSelectModel } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 type ProjectVote = InferSelectModel<typeof projectVote>;
 
@@ -53,5 +54,26 @@ export const insertVote = async (
       userId,
       type,
     });
+  }
+};
+
+export const subscribedCategoryIds = async () => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  const categories = await db.query.userCategory.findMany({
+    with: {
+      category: true,
+    },
+    where: eq(userCategory.userId, userId),
+  });
+
+  if (categories.length > 0) {
+    return categories.map((cat) => cat.categoryId);
+  } else {
+    redirect("/onboarding");
   }
 };

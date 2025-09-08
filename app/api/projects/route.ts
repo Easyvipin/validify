@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { and, exists, eq, inArray, lt } from "drizzle-orm";
-import { project, projectCategory, userCategory } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { projectCategory } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/db/drizzle";
 
@@ -12,14 +12,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const limit = Number(searchParams.get("limit") || "10");
   const cursor = searchParams.get("cursor"); // project.id of last item seen
+  const categoriesParam = searchParams.get("categories");
 
-  // get user categories
-  const userCategories = await db
-    .select({ categoryId: userCategory.categoryId })
-    .from(userCategory)
-    .where(eq(userCategory.userId, userId));
+  const categoryIds = categoriesParam
+    ? categoriesParam.split(",").map((id) => Number(id))
+    : [];
 
-  const categoryIds = userCategories.map((uc) => uc.categoryId);
   if (categoryIds.length === 0) return NextResponse.json([]);
 
   // ✅ cursor pagination by project.id

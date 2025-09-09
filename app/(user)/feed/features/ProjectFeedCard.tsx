@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Sheet,
   SheetContent,
@@ -11,7 +10,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { categoryIcon } from "@/utils/constants";
-import { InferSelectModel } from "drizzle-orm";
 import { VoteType } from "../action";
 
 export type ProjectFeedCardProps = {

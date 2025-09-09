@@ -8,13 +8,14 @@ import { CategoryArray } from "@/app/(onboarding)/onboarding/page";
 import { getAllCategories } from "../../projects/actions";
 
 export default function ProjectsFeed() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [projects, setProjects] = useState<any[]>([]);
   const [categories, setCategories] = useState<CategoryArray>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const isFetching = useRef(false);
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [cache, setCache] = useState<Record<string, any>>({});
 
   const { ref, isIntersecting } = useIntersection({ rootMargin: "200px" });
@@ -103,23 +104,33 @@ export default function ProjectsFeed() {
 
   const handleVote = async (type: VoteType, projectId: number) => {
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id !== projectId
-          ? p
-          : {
-              ...p,
-              upvotes:
-                type === "upvote"
-                  ? p.upvotes + (p.userVote === "upvote" ? -1 : 1)
-                  : p.upvotes + (p.userVote === "downvote" ? 1 : 0),
-              downvotes:
-                type === "downvote"
-                  ? p.downvotes + (p.userVote === "downvote" ? -1 : 1)
-                  : p.downvotes + (p.userVote === "upvote" ? 1 : 0),
-              userVote: p.userVote === type ? null : type,
-            }
-      )
+      prev.map((p) => {
+        if (p.id !== projectId) return p;
+
+        let { upvotes, downvotes, userVote } = p;
+
+        if (userVote === type) {
+          // 👇 same vote clicked → remove it
+          if (type === "upvote") upvotes--;
+          else downvotes--;
+          userVote = null;
+        } else {
+          // 👇 switching or new vote
+          if (type === "upvote") {
+            upvotes++;
+            if (userVote === "downvote") downvotes--; // switching
+          } else {
+            downvotes++;
+            if (userVote === "upvote") upvotes--; // switching
+          }
+          userVote = type;
+        }
+
+        return { ...p, upvotes, downvotes, userVote };
+      })
     );
+
+    // optimistic update sent to backend
     await insertVote(projectId, type);
   };
 

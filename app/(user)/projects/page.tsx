@@ -2,9 +2,7 @@ import { Suspense } from "react";
 
 import ProjectsPage from "./features/list";
 
-type Props = {};
-
-const ProjectPage = async (props: Props) => {
+const ProjectPage = async () => {
   return (
     <div>
       <Suspense fallback={<div>loading projects...</div>}>

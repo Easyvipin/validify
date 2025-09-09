@@ -15,12 +15,9 @@ import {
   MenubarTrigger,
 } from "../ui/menubar";
 import AddProject from "@/app/(user)/projects/features/AddProject";
-import { createProject } from "@/app/(user)/projects/actions";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 
-type Props = {};
-
-const ActionBar = (props: Props) => {
+const ActionBar = () => {
   const [addProjectDialogOpen, setAddProjectDialogOpen] = useState(false);
 
   const closeDialog = () => {

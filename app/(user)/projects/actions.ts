@@ -41,6 +41,7 @@ export const getProjects = async () => {
 }; */
 
 export async function createProject(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prevState: any,
   formData: {
     name: string;

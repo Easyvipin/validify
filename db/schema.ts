@@ -20,6 +20,7 @@ export const project = pgTable("project", {
   }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  score: integer("score").default(0).notNull(),
 });
 
 export const user = pgTable("user", {

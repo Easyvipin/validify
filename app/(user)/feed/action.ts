@@ -21,7 +21,10 @@ export const insertVote = async (
   }
 
   const existingVote = await db.query.projectVote.findFirst({
-    where: eq(projectVote.projectId, projectId),
+    where: and(
+      eq(projectVote.projectId, projectId),
+      eq(projectVote.userId, userId)
+    ),
   });
 
   if (existingVote) {

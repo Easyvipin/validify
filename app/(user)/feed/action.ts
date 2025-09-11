@@ -1,14 +1,16 @@
 "use server";
 
 import { db } from "@/db/drizzle";
-import { projectVote, userCategory } from "@/db/schema";
+import { projectClick, projectVote, userCategory } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { and, eq, InferSelectModel } from "drizzle-orm";
+import { and, eq, InferSelectModel, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 type ProjectVote = InferSelectModel<typeof projectVote>;
+type ProjectClick = InferSelectModel<typeof projectClick>;
 
 export type VoteType = ProjectVote["type"];
+export type click = ProjectClick["type"];
 
 export const insertVote = async (
   projectId: number,
@@ -78,5 +80,37 @@ export const subscribedCategoryIds = async () => {
     return categories.map((cat) => cat.categoryId);
   } else {
     redirect("/onboarding");
+  }
+};
+
+export const insertClick = async (
+  projectId: ProjectClick["projectId"],
+  type: click
+) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
+  const [{ clickCount }] = await db
+    .select({ clickCount: sql<number>`count(*)` })
+    .from(projectClick)
+    .where(
+      and(
+        eq(projectClick.projectId, projectId),
+        eq(projectClick.userId, userId),
+        eq(projectClick.type, type)
+      )
+    );
+
+  if (Number(clickCount) !== 1) {
+    await db.insert(projectClick).values({
+      projectId: projectId,
+      userId: userId,
+      type: type,
+    });
+  } else {
+    return;
   }
 };

@@ -10,7 +10,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { categoryIcon } from "@/utils/constants";
-import { VoteType } from "../action";
+import { click, insertClick, VoteType } from "../action";
 
 export type ProjectFeedCardProps = {
   id: number;
@@ -56,7 +56,10 @@ export default function ProjectFeedCard({
     handleVote(type, projectId);
   };
 
-  console.log(selectedVoteType);
+  const handleSheet = async (pId: number, type: click) => {
+    openSheet("details");
+    await insertClick(pId, type);
+  };
 
   return (
     <>
@@ -147,7 +150,7 @@ export default function ProjectFeedCard({
             <Button
               size="sm"
               className="bg-card border border-border text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-200 text-sm"
-              onClick={() => openSheet("details")}
+              onClick={() => handleSheet(project.id, "view")}
             >
               📋 Details
             </Button>

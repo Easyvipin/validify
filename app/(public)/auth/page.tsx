@@ -28,6 +28,10 @@ export default function AfterSignUpPage() {
   }, []);
 
   return (
-    <div className="p-6">{loading ? "Wait a second" : "Redirecting..."}</div>
+    <div className="p-6 h-full flex justify-center items-center">
+      {loading
+        ? "Wait as we load you into the validation Systems"
+        : "Redirecting..."}
+    </div>
   );
 }

@@ -16,13 +16,17 @@ export default async function Home() {
         text="To Tomorrow’s Projects"
         disabled={false}
         speed={3}
-        className="custom-class text-8xl"
+        className="custom-class text-7xl text-primary"
       />
-      <h3>Early Birds , MVP , or college side projects</h3>
-      <AuthRedirectButton
-        isAuthenticated={isLoggedIn}
-        label="Validate your project"
-      />
+      <div className="flex flex-col justify-center items-center gap-10">
+        <h3 className="mt-0">
+          Place for Early Birds , MVP , or college side projects
+        </h3>
+        <AuthRedirectButton
+          isAuthenticated={isLoggedIn}
+          label="Validate your project"
+        />
+      </div>
     </div>
   );
 }

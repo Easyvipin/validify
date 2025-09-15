@@ -31,6 +31,7 @@ const formSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   desc: z.string().min(1, "Description is required"),
   categoryId: z.string().min(1, "Category is required"),
+  url: z.string().url("Invalid URL").min(1, "URL is required"),
 });
 
 interface IAddProject {
@@ -50,6 +51,7 @@ export default function AddProject({ closeDialog }: IAddProject) {
       name: "",
       desc: "",
       categoryId: "1",
+      url: "",
     },
   });
 
@@ -108,6 +110,20 @@ export default function AddProject({ closeDialog }: IAddProject) {
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Input placeholder="Enter project description" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>URL</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter project URL" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -47,6 +47,7 @@ export async function createProject(
     name: string;
     desc: string;
     categoryId: string;
+    url: string;
   }
 ) {
   const { userId } = await auth();
@@ -56,6 +57,7 @@ export async function createProject(
 
   const name = formData.name as string;
   const desc = formData.desc as string;
+  const url = formData.url as string;
   const categoryId = Number(formData.categoryId);
 
   const [newProject] = await db
@@ -64,6 +66,7 @@ export async function createProject(
       name: name,
       desc: desc,
       userId: userId,
+      logoUrl: url,
     })
     .returning({ id: project.id });
 

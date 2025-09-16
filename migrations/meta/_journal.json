@@ -50,6 +50,20 @@
       "when": 1757428022794,
       "tag": "0006_thankful_kinsey_walden",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1758044082009,
+      "tag": "0007_nice_living_tribunal",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1758044124266,
+      "tag": "0008_heavy_steve_rogers",
+      "breakpoints": true
     }
   ]
 }

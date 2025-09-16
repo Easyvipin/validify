@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   primaryKey,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const project = pgTable("project", {
@@ -86,6 +87,37 @@ export const projectClick = pgTable("project_click", {
   userId: text("user_id").references(() => user.cUserId),
   sessionId: text("session_id"),
   type: text("type", { enum: ["view", "link"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userNotification = pgTable(
+  "user_notification",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    projectId: integer("project_id").notNull(),
+    type: text("type", { enum: ["upvote", "view", "comment"] }).notNull(),
+    lastReadAt: timestamp("last_read_at"),
+    lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_project_type_idx").on(table.userId, table.projectId),
+  ]
+);
+
+export const userNotificationHistory = pgTable("user_notification_history", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => user.cUserId, { onDelete: "cascade" })
+    .notNull(),
+  projectId: integer("project_id")
+    .references(() => project.id, { onDelete: "cascade" })
+    .notNull(),
+  triggeredBy: text("triggered_by")
+    .references(() => user.cUserId, { onDelete: "cascade" })
+    .notNull(),
+  type: text("type", { enum: ["upvote", "view", "comment"] }).notNull(),
+  message: text("message"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -1,47 +1,56 @@
-/* "use server";
+"use server";
 
 import { db } from "@/db/drizzle";
-import { userNotification, userNotificationHistory } from "@/db/schema";
+import {
+  project,
+  userNotification,
+  userNotificationHistory,
+} from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, desc, sql } from "drizzle-orm";
 
 // 1️⃣ Create a notification (called from vote/comment)
 export async function createNotification({
-  ownerId, // project owner
   projectId,
-  triggeredBy, // user who caused the event
-  type, // "upvote", "downvote", "view", "comment"
+  triggeredBy,
+  type,
 }: {
-  ownerId: string;
   projectId: number;
   triggeredBy: string;
-  type: "upvote" | "view" | "comment";
+  type: "upvote" | "view";
 }) {
-  // a) insert immutable history
-  await db.insert(userNotificationHistory).values({
-    userId: ownerId,
-    projectId,
-    triggeredBy,
-    type,
-    createdAt: new Date(),
-  });
+  const [p] = await db
+    .select({ userId: project.userId, name: project.name })
+    .from(project)
+    .where(eq(project.id, projectId));
 
-  // b) upsert summary row
-  await db
-    .insert(userNotification)
-    .values({
-      userId: ownerId,
+  if (p.userId) {
+    await db.insert(userNotificationHistory).values({
+      userId: p.userId,
       projectId,
+      projectName: p.name,
+      triggeredBy,
       type,
-      lastUpdated: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: [userNotification.userId, userNotification.projectId], // one row per project per user
-      set: {
-        type, // overwrite previous type (handles upvote -> downvote)
-        lastUpdated: new Date(),
-      },
+      createdAt: new Date(),
     });
+
+    await db
+      .insert(userNotification)
+      .values({
+        userId: p.userId,
+        projectId,
+        type,
+        lastUpdated: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [userNotification.userId, userNotification.projectId], // one row per project per user
+        set: {
+          type,
+          lastUpdated: new Date(),
+        },
+      });
+  } else {
+  }
 }
 
 // 2️⃣ Fetch notifications (summary + unread count), sorted by recent activity
@@ -49,20 +58,25 @@ export async function getNotifications() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not logged in");
 
-  // fetch all channels for user
+  // fetch all channels for user (summary rows)
   const channels = await db
     .select()
     .from(userNotification)
     .where(eq(userNotification.userId, userId))
-    .orderBy(userNotification.lastUpdated, "desc");
+    .orderBy(desc(userNotification.lastUpdated));
 
-  // compute unread count for each channel
+  // enrich with unread breakdowns
   const enriched = await Promise.all(
     channels.map(async (ch) => {
       const lastReadAt = ch.lastReadAt ?? new Date(0);
 
-      const [res] = await db
-        .select({ count: db.sql<number>`count(*)` })
+      // group unread notifications by type
+      const rows = await db
+        .select({
+          type: userNotificationHistory.type,
+          count: sql<number>`count(*)`,
+          projectName: sql<string>`MAX("project_name")`,
+        })
         .from(userNotificationHistory)
         .where(
           and(
@@ -70,21 +84,34 @@ export async function getNotifications() {
             eq(userNotificationHistory.projectId, ch.projectId),
             gt(userNotificationHistory.createdAt, lastReadAt)
           )
-        );
+        )
+        .groupBy(userNotificationHistory.type);
 
       return {
         ...ch,
-        unreadCount: Number(res?.count ?? 0),
+        unreadCount: rows.reduce((sum, r) => sum + Number(r.count), 0),
+        unreadBreakdown: rows.map((r) => ({
+          type: r.type,
+          count: Number(r.count),
+        })),
+        projectName: rows[0].projectName,
       };
     })
   );
 
-  return enriched;
+  const totalUnreadCount = enriched.reduce(
+    (sum, ch) => sum + ch.unreadCount,
+    0
+  );
+
+  return {
+    totalUnreadCount,
+    projects: enriched,
+  };
 }
 
-// 3️⃣ Mark a project as read
 export async function markNotificationRead(projectId: number) {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Not logged in");
 
   await db
@@ -97,4 +124,50 @@ export async function markNotificationRead(projectId: number) {
       )
     );
 }
- */
+
+export async function removeUpvoteNotification(
+  projectId: number,
+  triggeredBy: string
+) {
+  const [proj] = await db
+    .select({ userId: project.userId })
+    .from(project)
+    .where(eq(project.id, projectId));
+
+  if (!proj?.userId) {
+    throw new Error("Invalid Project");
+  }
+
+  await db
+    .delete(userNotificationHistory)
+    .where(
+      and(
+        eq(userNotificationHistory.userId, proj.userId),
+        eq(userNotificationHistory.projectId, projectId),
+        eq(userNotificationHistory.triggeredBy, triggeredBy),
+        eq(userNotificationHistory.type, "upvote")
+      )
+    );
+
+  const remaining = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(userNotificationHistory)
+    .where(
+      and(
+        eq(userNotificationHistory.userId, proj.userId),
+        eq(userNotificationHistory.projectId, projectId),
+        eq(userNotificationHistory.type, "upvote")
+      )
+    );
+
+  if (Number(remaining[0]?.count ?? 0) === 0) {
+    await db
+      .delete(userNotification)
+      .where(
+        and(
+          eq(userNotification.userId, proj.userId),
+          eq(userNotification.projectId, projectId)
+        )
+      );
+  }
+}

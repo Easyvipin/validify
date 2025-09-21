@@ -64,6 +64,13 @@
       "when": 1758044124266,
       "tag": "0008_heavy_steve_rogers",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1758457545733,
+      "tag": "0009_empty_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

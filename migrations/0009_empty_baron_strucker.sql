@@ -1,0 +1,1 @@
+ALTER TABLE "user_notification_history" ADD COLUMN "project_name" text NOT NULL;

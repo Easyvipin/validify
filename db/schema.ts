@@ -113,6 +113,7 @@ export const userNotificationHistory = pgTable("user_notification_history", {
   projectId: integer("project_id")
     .references(() => project.id, { onDelete: "cascade" })
     .notNull(),
+  projectName: text("project_name").notNull(),
   triggeredBy: text("triggered_by")
     .references(() => user.cUserId, { onDelete: "cascade" })
     .notNull(),

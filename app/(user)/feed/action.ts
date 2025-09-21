@@ -5,6 +5,10 @@ import { projectClick, projectVote, userCategory } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq, InferSelectModel, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import {
+  createNotification,
+  removeUpvoteNotification,
+} from "../notifications/actions";
 
 type ProjectVote = InferSelectModel<typeof projectVote>;
 type ProjectClick = InferSelectModel<typeof projectClick>;
@@ -19,46 +23,78 @@ export const insertVote = async (
   const { userId } = await auth();
 
   if (!userId) {
-    return;
+    throw new Error("Unauthorized");
   }
 
-  const existingVote = await db.query.projectVote.findFirst({
-    where: and(
-      eq(projectVote.projectId, projectId),
-      eq(projectVote.userId, userId)
-    ),
-  });
-
-  if (existingVote) {
-    if (existingVote.type === type) {
-      // clicked same vote again → remove it
-      await db
-        .delete(projectVote)
-        .where(
-          and(
-            eq(projectVote.projectId, projectId),
-            eq(projectVote.userId, userId)
-          )
-        );
-    } else {
-      // switch vote → update record
-      await db
-        .update(projectVote)
-        .set({ type })
-        .where(
-          and(
-            eq(projectVote.projectId, projectId),
-            eq(projectVote.userId, userId)
-          )
-        );
-    }
-  } else {
-    // no previous vote → insert new vote
-    await db.insert(projectVote).values({
-      projectId,
-      userId,
-      type,
+  try {
+    const existingVote = await db.query.projectVote.findFirst({
+      where: and(
+        eq(projectVote.projectId, projectId),
+        eq(projectVote.userId, userId)
+      ),
     });
+
+    if (existingVote) {
+      if (existingVote.type === type) {
+        // clicked same vote again → remove it
+        await db
+          .delete(projectVote)
+          .where(
+            and(
+              eq(projectVote.projectId, projectId),
+              eq(projectVote.userId, userId)
+            )
+          );
+        if (type === "upvote") {
+          await removeUpvoteNotification(projectId, userId).catch((err) => {
+            throw new Error("Failed to register your vote");
+          });
+        }
+      } else {
+        // switch vote → update record
+        await db
+          .update(projectVote)
+          .set({ type })
+          .where(
+            and(
+              eq(projectVote.projectId, projectId),
+              eq(projectVote.userId, userId)
+            )
+          );
+
+        if (type === "upvote") {
+          await createNotification({
+            projectId,
+            triggeredBy: userId,
+            type,
+          }).catch((err) => {
+            throw new Error("Failed to register your vote");
+          });
+        } else {
+          await removeUpvoteNotification(projectId, userId).catch((err) => {
+            throw new Error("Failed to register your vote");
+          });
+        }
+      }
+    } else {
+      await db.insert(projectVote).values({
+        projectId,
+        userId,
+        type,
+      });
+
+      if (type === "upvote") {
+        await createNotification({
+          projectId,
+          triggeredBy: userId,
+          type,
+        }).catch((err) => {
+          throw new Error("Failed to register your vote");
+        });
+      }
+    }
+  } catch (err) {
+    throw new Error("Failed to register your vote");
   }
 };
 

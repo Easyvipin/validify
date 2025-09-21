@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { Home, FolderOpen, Bell, Menu, X, Fan, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "../ModeToggle";
+import { time } from "console";
+import { getNotifications } from "@/app/(user)/notifications/actions";
 
 interface NavItem {
   name: string;
@@ -18,11 +20,16 @@ interface NavItem {
 export function DashboardNavigation() {
   const pathname = usePathname();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // TODO: Replace with actual notification count from your API
   useEffect(() => {
-    // Fetch unread notification count
-    // setUnreadNotifications(count);
+    timerRef.current = setInterval(async () => {
+      const resp = await getNotifications();
+      if (resp.totalUnreadCount > 0) {
+        setUnreadNotifications(resp.totalUnreadCount);
+      }
+      console.log(resp);
+    }, 60000);
   }, []);
 
   const navItems: NavItem[] = [
@@ -77,7 +84,7 @@ export function DashboardNavigation() {
                   >
                     <Icon className="h-4 w-4 mr-2" />
                     {item.name}
-                    {/* {item.badge && item.badge > 0 && (
+                    {/* { && item.badge > 0 && (
                       <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                         {item.badge > 99 ? "99+" : item.badge}
                       </span>
@@ -99,11 +106,11 @@ export function DashboardNavigation() {
                 )}
               >
                 <Bell className="h-4 w-4" />
-                {/* {item.badge && item.badge > 0 && (
-                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                        {item.badge > 99 ? "99+" : item.badge}
-                      </span>
-                    )} */}
+                {unreadNotifications > 0 && (
+                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                  </span>
+                )}
               </Link>
               <Link
                 href={"/settings"}

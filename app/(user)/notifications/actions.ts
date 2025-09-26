@@ -7,7 +7,7 @@ import {
   userNotificationHistory,
 } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq, and, gt, desc, sql } from "drizzle-orm";
+import { eq, and, gt, desc, sql, lt } from "drizzle-orm";
 
 // 1️⃣ Create a notification (called from vote/comment)
 export async function createNotification({
@@ -108,6 +108,31 @@ export async function getNotifications() {
     totalUnreadCount,
     projects: enriched,
   };
+}
+
+export async function getOlderNotifications() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Not authorized");
+  }
+
+  const rows = await db
+    .select({
+      type: userNotificationHistory.type,
+      count: sql<number>`count(*)`,
+      projectName: sql<string>`MAX("project_name")`,
+    })
+    .from(userNotificationHistory)
+    .where(
+      and(
+        eq(userNotificationHistory.userId, userId),
+        lt(userNotificationHistory.createdAt, new Date())
+      )
+    )
+    .groupBy(userNotificationHistory.type, userNotificationHistory.projectId);
+
+  return rows;
 }
 
 export async function markNotificationRead(projectId: number) {

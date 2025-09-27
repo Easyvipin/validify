@@ -2,25 +2,26 @@ import { Eye, ChevronsUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { getNotifications, getOlderNotifications } from "./actions";
+import { getNotificationsCount, getListOfNotifications } from "./actions";
 import { listNotification } from "@/utils/common";
 import Link from "next/link";
 
 export default async function Page() {
-  const notifications = await getNotifications();
-  const formattedNotifications = listNotification(notifications.projects);
-  const history = await getOlderNotifications();
+  const notificationsCount = await getNotificationsCount();
+  const notifications = await getListOfNotifications();
+  const formattedNotifications = listNotification(notifications);
 
   return (
     <div className="max-w-screen mx-auto p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <h1 className="text-sm font-semibold">Recents</h1>
+        <h1 className="text-sm font-semibold">
+          Recents ({notificationsCount})
+        </h1>
       </div>
-      {JSON.stringify(history)}
       {formattedNotifications &&
         formattedNotifications.map((notif) => (
           <Link
-            key={notif.id}
+            key={`${notif.projectId + notif.type}`}
             href={`/project/${notif.projectId}`}
             className="block"
           >

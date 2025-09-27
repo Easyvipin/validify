@@ -1,15 +1,14 @@
-import { getNotifications } from "@/app/(user)/notifications/actions";
+import { getListOfNotifications } from "@/app/(user)/notifications/actions";
 
-type ListType = Awaited<ReturnType<typeof getNotifications>>["projects"];
+type ListType = Awaited<ReturnType<typeof getListOfNotifications>>;
 
 export function listNotification(list: ListType) {
   return list?.map((project) => {
-    let message = `${project.projectName} got ${project.unreadCount} ${project.type}`;
+    let message = `${project.projectName} got ${project.count} ${project.type}`;
     return {
-      id: project.id,
       projectId: project.projectId,
       projectName: project.projectName,
-      count: project.unreadCount,
+      count: project.count,
       message,
       type: project.type,
     };

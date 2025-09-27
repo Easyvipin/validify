@@ -54,7 +54,7 @@ export async function createNotification({
 }
 
 // 2️⃣ Fetch notifications (summary + unread count), sorted by recent activity
-export async function getNotifications() {
+export async function getNotificationsCount() {
   const { userId } = await auth();
   if (!userId) throw new Error("Not logged in");
 
@@ -104,13 +104,10 @@ export async function getNotifications() {
     0
   );
 
-  return {
-    totalUnreadCount,
-    projects: enriched,
-  };
+  return totalUnreadCount;
 }
 
-export async function getOlderNotifications() {
+export async function getListOfNotifications() {
   const { userId } = await auth();
 
   if (!userId) {
@@ -119,18 +116,16 @@ export async function getOlderNotifications() {
 
   const rows = await db
     .select({
+      projectId: userNotificationHistory.projectId,
       type: userNotificationHistory.type,
       count: sql<number>`count(*)`,
       projectName: sql<string>`MAX("project_name")`,
+      latestCreatedAt: sql<Date>`MAX(${userNotificationHistory.createdAt})`,
     })
     .from(userNotificationHistory)
-    .where(
-      and(
-        eq(userNotificationHistory.userId, userId),
-        lt(userNotificationHistory.createdAt, new Date())
-      )
-    )
-    .groupBy(userNotificationHistory.type, userNotificationHistory.projectId);
+    .where(and(eq(userNotificationHistory.userId, userId)))
+    .groupBy(userNotificationHistory.type, userNotificationHistory.projectId)
+    .orderBy(desc(sql`MAX(${userNotificationHistory.createdAt})`));
 
   return rows;
 }

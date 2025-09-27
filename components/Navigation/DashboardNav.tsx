@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { Home, FolderOpen, Bell, Menu, X, Fan, Settings } from "lucide-react";
+import { Home, FolderOpen, Bell, Fan, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ModeToggle } from "../ModeToggle";
-import { time } from "console";
-import { getNotifications } from "@/app/(user)/notifications/actions";
+import { getNotificationsCount } from "@/app/(user)/notifications/actions";
 
 interface NavItem {
   name: string;
@@ -21,15 +20,23 @@ export function DashboardNavigation() {
   const pathname = usePathname();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   useEffect(() => {
-    timerRef.current = setInterval(async () => {
-      const resp = await getNotifications();
-      if (resp.totalUnreadCount > 0) {
-        setUnreadNotifications(resp.totalUnreadCount);
+    const fetchNotificationCount = async () => {
+      const count = await getNotificationsCount();
+      if (count > 0) {
+        setUnreadNotifications(count);
       }
-      console.log(resp);
-    }, 60000);
+    };
+
+    fetchNotificationCount();
+
+    timerRef.current = setInterval(fetchNotificationCount, 60000);
+
+    return () => {
+      if (timerRef.current) {
+        return clearInterval(timerRef.current);
+      }
+    };
   }, []);
 
   const navItems: NavItem[] = [

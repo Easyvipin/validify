@@ -72,9 +72,13 @@ const ActionBar = () => {
       <Dialog
         open={addProjectDialogOpen}
         onOpenChange={setAddProjectDialogOpen}
+        modal={false}
       >
-        <DialogContent>
-          <DialogTitle>Add Project</DialogTitle>
+        <DialogContent
+          className="min-w-[80vw] min-h-[80vh] border-2 flex flex-col"
+          onInteractOutside={(event) => event.preventDefault()}
+        >
+          <DialogTitle className="">Create Project</DialogTitle>
           <AddProject closeDialog={closeDialog} />
         </DialogContent>
       </Dialog>

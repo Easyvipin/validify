@@ -275,61 +275,63 @@ export default function AddProject({ closeDialog }: IAddProject) {
         </div>
       )}
       {assetSection && (
-        <div className="  ">
+        <div className="flex w-full h-full justify-evenly flex-col md:flex-row">
           {assetSection && (
-            <div>
-              <h4 className="font-semibold">Add Logo & Screenshots</h4>
-              <div className="mt-2">
-                <h5 className="text-foreground mb-2">Logo</h5>
-                <div className="flex">
-                  <div className="flex flex-col gap-2.5 w-[120px] h-[160px]">
-                    <UploadFile
-                      onDrop={handleDrop}
-                      files={files}
-                      disable={logoData ? true : false}
-                    >
-                      <DropzoneEmptyState>
-                        <UploadIcon size={60} />
-                      </DropzoneEmptyState>
-                      {filePreview && (
-                        <DropzoneContent>
-                          <div className="h-full w-full border-4 border-red-500 overflow-clip">
-                            <img
-                              alt="Preview"
-                              className="absolute top-0 w-full h-full left-0 object-cover"
-                              src={filePreview}
-                            />
-                          </div>
-                        </DropzoneContent>
+            <>
+              <div>
+                <h4 className="font-semibold">Add Logo & Screenshots</h4>
+                <div className="mt-2">
+                  <h5 className="text-foreground mb-2">Logo</h5>
+                  <div className="flex">
+                    <div className="flex flex-col gap-2.5 w-[120px] h-[160px]">
+                      <UploadFile
+                        onDrop={handleDrop}
+                        files={files}
+                        disable={logoData ? true : false}
+                      >
+                        <DropzoneEmptyState>
+                          <UploadIcon size={60} />
+                        </DropzoneEmptyState>
+                        {filePreview && (
+                          <DropzoneContent>
+                            <div className="h-full w-full border-4 border-red-500 overflow-clip">
+                              <img
+                                alt="Preview"
+                                className="absolute top-0 w-full h-full left-0 object-cover"
+                                src={filePreview}
+                              />
+                            </div>
+                          </DropzoneContent>
+                        )}
+                      </UploadFile>
+                      {!logoData?.secure_url && (
+                        <Button
+                          disabled={
+                            files?.length === 0 || isLogoUploading === true
+                          }
+                          onClick={uploadLogo}
+                          className="w-full"
+                        >
+                          Upload Logo {isLogoUploading && <Spinner />}
+                        </Button>
                       )}
-                    </UploadFile>
-                    {!logoData?.secure_url && (
-                      <Button
-                        disabled={
-                          files?.length === 0 || isLogoUploading === true
-                        }
-                        onClick={uploadLogo}
-                        className="w-full"
-                      >
-                        Upload Logo {isLogoUploading && <Spinner />}
-                      </Button>
-                    )}
-                    {logoData?.secure_url && isLogoUploading === false && (
-                      <Button
-                        disabled={isLogoDeleting}
-                        onClick={deleteLogo}
-                        className="w-full"
-                      >
-                        Delete {isLogoDeleting && <Spinner />}
-                      </Button>
-                    )}
+                      {logoData?.secure_url && isLogoUploading === false && (
+                        <Button
+                          disabled={isLogoDeleting}
+                          onClick={deleteLogo}
+                          className="w-full"
+                        >
+                          Delete {isLogoDeleting && <Spinner />}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div>
+              <div className="w-[100%] md:w-[50%]">
                 <MultiplePhotoUpload />
               </div>
-            </div>
+            </>
           )}
         </div>
       )}

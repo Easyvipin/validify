@@ -7,3 +7,5 @@ export const categoryIcon: Record<string, string> = {
   Games: "🎮",
   Design: "🎨",
 };
+
+export const SCREENSHOT_UPLOAD_LIMIT = 5;

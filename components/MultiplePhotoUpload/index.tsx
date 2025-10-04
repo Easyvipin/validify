@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Upload, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SCREENSHOT_UPLOAD_LIMIT } from "@/utils/constants";
 
 interface PhotoFile {
   file: File;
@@ -16,15 +17,20 @@ interface PhotoFile {
 export function MultiplePhotoUpload() {
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newPhotos = acceptedFiles.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      id: Math.random().toString(36).substr(2, 9),
-    }));
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (photos.length !== SCREENSHOT_UPLOAD_LIMIT) {
+        const newPhotos = acceptedFiles.map((file) => ({
+          file,
+          preview: URL.createObjectURL(file),
+          id: Math.random().toString(36).substr(2, 9),
+        }));
 
-    setPhotos((prev) => [...prev, ...newPhotos]);
-  }, []);
+        setPhotos((prev) => [...prev, ...newPhotos]);
+      }
+    },
+    [photos]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -53,11 +59,11 @@ export function MultiplePhotoUpload() {
     <div className="space-y-6">
       {/* Dropzone */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="">
           <div
             {...getRootProps()}
             className={cn(
-              "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+              "border-2 border-dashed rounded-lg p-2 text-center cursor-pointer transition-colors",
               isDragActive
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25 hover:border-primary/50"
@@ -66,17 +72,14 @@ export function MultiplePhotoUpload() {
             <input {...getInputProps()} />
             <div className="flex flex-col items-center gap-4">
               <div className="p-4 rounded-full bg-muted">
-                <Upload className="h-8 w-8 text-muted-foreground" />
+                <Upload className="h-4 w-4 text-muted-foreground" />
               </div>
               <div className="space-y-2">
                 <p className="text-lg font-medium">
                   {isDragActive ? "Drop photos here" : "Upload photos"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Drag and drop photos here, or click to select files
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Supports: JPEG, PNG, GIF, WebP
+                  Drag and drop your product screenshots here, or click.
                 </p>
               </div>
             </div>
@@ -90,7 +93,7 @@ export function MultiplePhotoUpload() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium">
-                Selected Photos ({photos.length})
+                Selected Photos ({photos.length}/{SCREENSHOT_UPLOAD_LIMIT})
               </h3>
               <Button
                 variant="outline"
@@ -102,7 +105,7 @@ export function MultiplePhotoUpload() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-2">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative group">
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted">
@@ -158,9 +161,9 @@ export function MultiplePhotoUpload() {
       {/* Empty State */}
       {photos.length === 0 && (
         <Card className="border-dashed">
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-2 text-center">
             <div className="flex flex-col items-center gap-4 text-muted-foreground">
-              <ImageIcon className="h-12 w-12" />
+              <ImageIcon className="h-4 w-4" />
               <p>No photos selected yet</p>
             </div>
           </CardContent>

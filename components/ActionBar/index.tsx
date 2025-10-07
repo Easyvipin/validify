@@ -14,14 +14,13 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "../ui/menubar";
-import AddProject from "@/app/(user)/projects/features/AddProject";
-import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
+import { useRouter } from "next/navigation";
 
 const ActionBar = () => {
-  const [addProjectDialogOpen, setAddProjectDialogOpen] = useState(false);
+  const router = useRouter();
 
-  const closeDialog = () => {
-    setAddProjectDialogOpen(false);
+  const redirectToAddProject = () => {
+    router.push("/project/new");
   };
 
   return (
@@ -30,7 +29,7 @@ const ActionBar = () => {
       <div className="flex gap-2 justify-end items-center">
         <Menubar className="w-full">
           <MenubarMenu>
-            <MenubarTrigger onClick={() => setAddProjectDialogOpen(true)}>
+            <MenubarTrigger onClick={redirectToAddProject}>
               <PlusCircleIcon size={"16px"} /> &nbsp; New
             </MenubarTrigger>
           </MenubarMenu>
@@ -69,19 +68,6 @@ const ActionBar = () => {
           </MenubarMenu>
         </Menubar>
       </div>
-      <Dialog
-        open={addProjectDialogOpen}
-        onOpenChange={setAddProjectDialogOpen}
-        modal={false}
-      >
-        <DialogContent
-          className="min-w-[80vw] min-h-[80vh] border-2 flex flex-col"
-          onInteractOutside={(event) => event.preventDefault()}
-        >
-          <DialogTitle className="">Create Project</DialogTitle>
-          <AddProject closeDialog={closeDialog} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

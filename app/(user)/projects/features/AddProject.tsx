@@ -41,6 +41,9 @@ import {
 import { UploadIcon } from "lucide-react";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { MultiplePhotoUpload } from "@/components/MultiplePhotoUpload";
+import { metaDataForSteps, PROJECT_STEPS } from "@/utils/constants";
+import { Textarea } from "@/components/ui/textarea";
+import { string } from "zod/v3";
 
 // 1️⃣ Define validation schema
 const formSchema = z.object({
@@ -48,6 +51,8 @@ const formSchema = z.object({
   desc: z.string().min(1, "Description is required"),
   categoryId: z.string().min(1, "Category is required"),
   url: z.string().url("Invalid URL").min(1, "URL is required"),
+  tagline: z.string().min(10, "Every product has a tagline"),
+  logoUrl: z.string().url("Invalid URL"),
 });
 
 type LogoData = {
@@ -58,13 +63,11 @@ type LogoData = {
   format?: string;
 };
 
-interface IAddProject {
-  closeDialog: () => void;
-}
+interface IAddProject {}
 
-export default function AddProject({ closeDialog }: IAddProject) {
+export default function AddProject() {
   const [categories, setCategories] = useState<CategoryArray>([]);
-  const [assetSection, setAssetSection] = useState(true);
+  const [assetSection, setAssetSection] = useState(false);
   const [files, setFiles] = useState<File[] | undefined>();
   const [state, formAction, isPending] = useActionState(createProject, {
     ok: false,
@@ -74,15 +77,20 @@ export default function AddProject({ closeDialog }: IAddProject) {
   const [filePreview, setFilePreview] = useState<string | undefined>();
   const [isLogoUploading, setIsLogoUploading] = useState(false);
   const [isLogoDeleting, setIsLogoDeleting] = useState(false);
+  const [steps, setSteps] = useState(3);
+
   /*  const [screenshots, setScreenshots] = useState<string[]>([]); */
 
   const form = useForm<z.infer<typeof formSchema>>({
+    mode: "onChange",
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       desc: "",
       categoryId: "1",
       url: "",
+      logoUrl: "",
+      tagline: "",
     },
   });
 
@@ -94,7 +102,6 @@ export default function AddProject({ closeDialog }: IAddProject) {
         form.reset();
       } else {
         toast.error(state.message);
-        closeDialog();
       }
     }
   }, [state, form]);
@@ -150,6 +157,7 @@ export default function AddProject({ closeDialog }: IAddProject) {
         const data = await uploadRes.json();
         setLogoData(data);
         setIsLogoUploading(false);
+        form.setValue("logoUrl", data.secure_url);
         toast.error("You logo just got uploaded!");
       } catch (err) {
         toast.error("Please Try Again!");
@@ -182,159 +190,227 @@ export default function AddProject({ closeDialog }: IAddProject) {
     }
   }, [logoData]);
 
+  const handleNext = async (
+    fieldsToValidate: (keyof z.infer<typeof formSchema>)[]
+  ) => {
+    const valid = await form.trigger(fieldsToValidate);
+    if (valid) {
+      setSteps((prev) => prev + 1);
+    }
+  };
+
+  const decrementStep = (e) => {
+    e.preventDefault();
+    setSteps((prev) => prev - 1);
+  };
+
   return (
-    <>
-      {!assetSection && (
-        <div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit((values) => {
-                startTransition(() => {
-                  formAction(values);
-                });
-              })}
-              className="space-y-4"
-            >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter project name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className="flex h-[80vh] border mt-10 rounded-4xl overflow-clip">
+      <section className="w-[40%] h-[100%] bg-accent hidden md:block ">
+        <img className="w-full h-full" src={metaDataForSteps[steps].coverUrl} />
+      </section>
+      <div className="w-full md:w-[60%] h-full p-10 relative flex flex-col justify-center">
+        <h1 className="text-xl md:text-3xl">{metaDataForSteps[steps].label}</h1>
 
-              <FormField
-                control={form.control}
-                name="desc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter project description"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit((values) => {
+              startTransition(() => {
+                formAction(values);
+              });
+              setSteps((prev) => prev + 1);
+            })}
+            className="space-y-4 mt-6"
+          >
+            {steps === 1 && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg">
+                        Tell us where it points to , avoid localhost please !
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter project URL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter project URL" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  name="categoryId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg">
+                        It belongs to which race ? , choose category{" "}
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select profession" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem
+                                key={cat.id}
+                                value={cat.id.toString()}
+                              >
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-between w-full gap-2 mt-10">
+                  <Button
+                    type="button"
+                    className="text-xl rounded mt-auto py-6 flex-1"
+                    onClick={(e) => handleNext(["url", "categoryId"])}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </>
+            )}
+            {steps === 2 && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter project name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pick a category</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select profession" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id.toString()}>
-                              {cat.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Creating..." : "Add Project"}
-              </Button>
-            </form>
-          </Form>
-        </div>
-      )}
-      {assetSection && (
-        <div className="flex w-full h-full justify-evenly flex-col md:flex-row">
-          {assetSection && (
-            <>
-              <div>
-                <h4 className="font-semibold">Add Logo & Screenshots</h4>
-                <div className="mt-2">
-                  <h5 className="text-foreground mb-2">Logo</h5>
-                  <div className="flex">
-                    <div className="flex flex-col gap-2.5 w-[120px] h-[160px]">
-                      <UploadFile
-                        onDrop={handleDrop}
-                        files={files}
-                        disable={logoData ? true : false}
-                      >
-                        <DropzoneEmptyState>
-                          <UploadIcon size={60} />
-                        </DropzoneEmptyState>
-                        {filePreview && (
-                          <DropzoneContent>
-                            <div className="h-full w-full border-4 border-red-500 overflow-clip">
-                              <img
-                                alt="Preview"
-                                className="absolute top-0 w-full h-full left-0 object-cover"
-                                src={filePreview}
-                              />
-                            </div>
-                          </DropzoneContent>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tag Line</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="okay dokey to problems..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="desc"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Describe your product what you solve etc"
+                          className="h-[100px] resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div>
+                  <div className="mt-2">
+                    <h5 className="text-foreground mb-2">Logo</h5>
+                    <div className="flex">
+                      <div className="flex flex-col gap-2.5 w-[120px] h-[160px]">
+                        <UploadFile
+                          onDrop={handleDrop}
+                          files={files}
+                          disable={logoData ? true : false}
+                        >
+                          <DropzoneEmptyState>
+                            <UploadIcon size={60} />
+                          </DropzoneEmptyState>
+                          {filePreview && (
+                            <DropzoneContent>
+                              <div className="h-full w-full border-4 border-red-500 overflow-clip">
+                                <img
+                                  alt="Preview"
+                                  className="absolute top-0 w-full h-full left-0 object-cover"
+                                  src={filePreview}
+                                />
+                              </div>
+                            </DropzoneContent>
+                          )}
+                        </UploadFile>
+                        {!logoData?.secure_url && (
+                          <Button
+                            disabled={
+                              files?.length === 0 || isLogoUploading === true
+                            }
+                            onClick={uploadLogo}
+                            className="w-full"
+                          >
+                            Upload Logo {isLogoUploading && <Spinner />}
+                          </Button>
                         )}
-                      </UploadFile>
-                      {!logoData?.secure_url && (
-                        <Button
-                          disabled={
-                            files?.length === 0 || isLogoUploading === true
-                          }
-                          onClick={uploadLogo}
-                          className="w-full"
-                        >
-                          Upload Logo {isLogoUploading && <Spinner />}
-                        </Button>
-                      )}
-                      {logoData?.secure_url && isLogoUploading === false && (
-                        <Button
-                          disabled={isLogoDeleting}
-                          onClick={deleteLogo}
-                          className="w-full"
-                        >
-                          Delete {isLogoDeleting && <Spinner />}
-                        </Button>
-                      )}
+                        {logoData?.secure_url && isLogoUploading === false && (
+                          <Button
+                            disabled={isLogoDeleting}
+                            onClick={deleteLogo}
+                            className="w-full"
+                          >
+                            Delete {isLogoDeleting && <Spinner />}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="w-[100%] md:w-[50%]">
+                <div className="flex justify-between w-full gap-2 mt-auto">
+                  <Button
+                    type="button"
+                    className="text-xl rounded mt-auto py-6 flex-1"
+                    disabled={isPending}
+                    onClick={decrementStep}
+                  >
+                    Prev
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="flex-1 text-xl rounded mt-auto py-6"
+                    disabled={isPending}
+                  >
+                    {isPending ? "Creating..." : "Setup Project"}
+                  </Button>
+                </div>
+              </>
+            )}
+          </form>
+        </Form>
+        {steps === 3 && (
+          <div className="flex w-full h-full justify-evenly flex-col md:flex-row">
+            <>
+              <div className="w-[100%]">
                 <MultiplePhotoUpload />
               </div>
             </>
-          )}
-        </div>
-      )}
-    </>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

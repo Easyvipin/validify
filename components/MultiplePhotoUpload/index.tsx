@@ -58,12 +58,12 @@ export function MultiplePhotoUpload() {
   return (
     <div className="space-y-6">
       {/* Dropzone */}
-      <Card>
-        <CardContent className="">
+      <Card className="p-0 md:p-2">
+        <CardContent className="p-1 py-1">
           <div
             {...getRootProps()}
             className={cn(
-              "border-2 border-dashed rounded-lg p-2 text-center cursor-pointer transition-colors",
+              "border-2 border-dashed rounded-lg p-1 md:p-2 text-center cursor-pointer transition-colors",
               isDragActive
                 ? "border-primary bg-primary/5"
                 : "border-muted-foreground/25 hover:border-primary/50"
@@ -78,7 +78,7 @@ export function MultiplePhotoUpload() {
                 <p className="text-lg font-medium">
                   {isDragActive ? "Drop photos here" : "Upload photos"}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm hidden md:block text-muted-foreground">
                   Drag and drop your product screenshots here, or click.
                 </p>
               </div>
@@ -105,7 +105,7 @@ export function MultiplePhotoUpload() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-8 md:grid-cols-8 lg:grid-cols-8 gap-2">
               {photos.map((photo) => (
                 <div key={photo.id} className="relative group">
                   <div className="aspect-square rounded-lg overflow-hidden bg-muted">

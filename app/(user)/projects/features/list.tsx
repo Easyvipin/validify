@@ -12,7 +12,7 @@ export default async function ProjectsPage() {
       {projects.length === 0 ? (
         <p className="text-white/60">No projects found.</p>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+        <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-1 mt-4">
           {projects.map((project) => (
             <ProjectCard
               key={project.id}
@@ -21,9 +21,9 @@ export default async function ProjectsPage() {
               desc={project.desc}
               logoUrl={project.logoUrl || ""}
               category={project.projectCategories[0]?.category.name}
-              upvotes={10}
-              downvotes={10}
-              comments={10}
+              upvotes={project.upvotes}
+              downvotes={project.downvotes}
+              tagline={project.tagline}
             />
           ))}
         </div>

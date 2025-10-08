@@ -13,6 +13,7 @@ export const project = pgTable("project", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   desc: text("desc").notNull(),
+  tagline: text("tagline"),
   logoUrl: text("logoUrl"),
   url: text("url"),
   userId: text("user_id").references(() => user.cUserId, {
@@ -22,6 +23,7 @@ export const project = pgTable("project", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   score: integer("score").default(0).notNull(),
+  screenshot: text("screenshot").array(),
 });
 
 export const user = pgTable("user", {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { X, Upload, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SCREENSHOT_UPLOAD_LIMIT } from "@/utils/constants";
+import { Spinner } from "../ui/shadcn-io/spinner";
 
 interface PhotoFile {
   file: File;
@@ -14,8 +15,13 @@ interface PhotoFile {
   id: string;
 }
 
-export function MultiplePhotoUpload() {
+type MultipleUploadType = {
+  onUpload: (photos: PhotoFile[]) => void;
+};
+
+export function MultiplePhotoUpload({ onUpload }: MultipleUploadType) {
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -54,6 +60,12 @@ export function MultiplePhotoUpload() {
     photos.forEach((photo) => URL.revokeObjectURL(photo.preview));
     setPhotos([]);
   };
+
+  const uploadScreenshots = useCallback(async () => {
+    setUploading(true);
+    await onUpload(photos);
+    setUploading(false);
+  }, [photos]);
 
   return (
     <div className="space-y-6">
@@ -99,6 +111,7 @@ export function MultiplePhotoUpload() {
                 variant="outline"
                 size="sm"
                 onClick={clearAll}
+                disabled={uploading}
                 className="text-destructive hover:text-destructive bg-transparent"
               >
                 Clear All
@@ -122,6 +135,7 @@ export function MultiplePhotoUpload() {
                     size="icon"
                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => removePhoto(photo.id)}
+                    disabled={uploading}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -148,9 +162,10 @@ export function MultiplePhotoUpload() {
       {/* Upload Actions */}
       {photos.length > 0 && (
         <div className="flex gap-4">
-          <Button className="flex-1">
+          <Button className="flex-1" onClick={uploadScreenshots}>
             <Upload className="h-4 w-4 mr-2" />
             Upload {photos.length} Photo{photos.length !== 1 ? "s" : ""}
+            {uploading && <Spinner />}
           </Button>
           <Button variant="outline" onClick={clearAll}>
             Cancel

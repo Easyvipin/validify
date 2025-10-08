@@ -71,6 +71,20 @@
       "when": 1758457545733,
       "tag": "0009_empty_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1759893534044,
+      "tag": "0010_new_silver_surfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1759897340987,
+      "tag": "0011_round_red_ghost",
+      "breakpoints": true
     }
   ]
 }

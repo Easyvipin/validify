@@ -10,20 +10,26 @@ export const categoryIcon: Record<string, string> = {
 
 export const SCREENSHOT_UPLOAD_LIMIT = 5;
 
-export const metaDataForSteps = {
+export const metaDataForSteps: Record<
+  number,
+  { label: string; coverUrl: string }
+> = {
   1: {
     label: "Project Setup",
     coverUrl:
-      "https://images.unsplash.com/photo-1611224923853-80b023f02d71?auto=format&fit=crop&w=1200&q=80", // Desk setup with planning materials
+      "https://res.cloudinary.com/dh9x227hi/image/upload/v1759862222/domain-names_ppkckn.svg", // Desk setup with planning materials
   },
   2: {
     label: "Project Details",
     coverUrl:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80", // Notebook, laptop and planning documents
+      "https://res.cloudinary.com/dh9x227hi/image/upload/v1759861929/ideas_mauekx.svg", // Notebook, laptop and planning documents
   },
   3: {
-    label: "Upload Assets",
+    label: "Screenshots of your project",
     coverUrl:
-      "https://images.unsplash.com/photo-1544396821-4dd40b938ad3?auto=format&fit=crop&w=1200&q=80", // Cloud upload concept
+      "https://res.cloudinary.com/dh9x227hi/image/upload/v1759862006/startup-marketing_pg0c10.svg", // Cloud upload concept
   },
 };
+
+export const DEFAULT_PROJECT_LOGO =
+  "https://res.cloudinary.com/dh9x227hi/image/upload/v1759931503/app-box-svgrepo-com_3_jot94c.svg";

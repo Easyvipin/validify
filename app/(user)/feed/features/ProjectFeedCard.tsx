@@ -9,8 +9,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { categoryIcon } from "@/utils/constants";
+import { categoryIcon, DEFAULT_PROJECT_LOGO } from "@/utils/constants";
 import { click, insertClick, VoteType } from "../action";
+import { ArrowDown, ArrowUp, Eye } from "lucide-react";
 
 export type ProjectFeedCardProps = {
   id: number;
@@ -24,6 +25,7 @@ export type ProjectFeedCardProps = {
   }[];
   upvotes: number;
   downvotes: number;
+  tagline: string | null;
 };
 
 type Props = {
@@ -65,32 +67,35 @@ export default function ProjectFeedCard({
     <>
       <div
         key={project.id}
-        className="rounded-2xl overflow-hidden transition-all duration-300 border border-border bg-card hover:-translate-y-1 hover:shadow-lg cursor-pointer"
+        className="rounded-2xl overflow-hidden transition-all duration-300 border border-border bg-card hover:-translate-y-1 hover:shadow-lg cursor-pointer relative"
         onClick={() => router.push(`/project/${project.id}`)}
       >
-        <div className="p-5 flex items-center gap-4">
-          {project.logoUrl ? (
-            <img
-              src={project.logoUrl}
-              alt={project.name}
-              className="w-12 h-12 rounded-xl object-cover border border-border"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl bg-muted">
-              {categoryIcon[project.projectCategories[0]?.category.name] ??
-                "📦"}
-            </div>
-          )}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground absolute top-4 right-4">
+          <span className="px-2 py-1 rounded-xl text-xs font-semibold bg-primary text-primary-foreground">
+            {project.projectCategories[0]?.category.name}
+          </span>
+        </div>
+        <div className="p-5 flex items-center gap-4 flex-wrap md:flex-nowrap">
+          <img
+            src={project.logoUrl || DEFAULT_PROJECT_LOGO}
+            alt={project.name}
+            className="w-12 h-12 self-start rounded-xl object-cover border border-border"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = DEFAULT_PROJECT_LOGO;
+            }}
+          />
 
-          <div className="flex-1">
-            <h3 className="text-xl font-medium text-foreground mb-1">
-              {project.name}
+          <div className="self-start w-[80%]">
+            <h3 className="text-md font-medium text-foreground mb-1">
+              Lorem ipsum dolor sit amet consectetur, adipisicing elit.
+              Perferendis, esse?
             </h3>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="px-2 py-1 rounded-xl text-xs font-semibold bg-primary text-primary-foreground">
-                {project.projectCategories[0]?.category.name}
-              </span>
-            </div>
+            {project.tagline && (
+              <h5 className="text-xs text-ring font-mono italic">
+                {project.tagline}
+              </h5>
+            )}
           </div>
         </div>
 
@@ -115,15 +120,15 @@ export default function ProjectFeedCard({
           <div className="flex items-center gap-3">
             <Button
               size="sm"
-              className={`w-9 h-9 p-0 text-lg transition-all duration-200 
+              className={`w-9 h-9 p-0 text-lg transition-all duration-200
                 ${
                   selectedVoteType === "upvote"
-                    ? "bg-success hover:bg-success/90 text-success-foreground border-1 border-green-300"
-                    : "bg-success/10 text-success hover:bg-success hover:text-success-foreground"
+                    ? "bg-success hover:bg-success/90 text-success-foreground border-1 border-green-500"
+                    : "bg-secondary-foreground text-green-500 hover:bg-success hover:text-success-foreground hover:border-1 hover:border-green-500"
                 }`}
               onClick={() => voteHandler("upvote", project.id)}
             >
-              ▲
+              <ArrowUp />
             </Button>
             <span className="font-semibold text-foreground min-w-8 text-center">
               {project.upvotes}
@@ -133,12 +138,12 @@ export default function ProjectFeedCard({
               className={`w-9 h-9 p-0 text-lg transition-all duration-200
                 ${
                   selectedVoteType === "downvote"
-                    ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                    : "bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    ? "bg-destructive/10 hover:bg-destructive/90 text-destructive-foreground border-1 border-destructive"
+                    : "bg-destructive/10 text-destructive hover:border-1 hover:border-destructive hover:bg-destructive/10"
                 }`}
               onClick={() => voteHandler("downvote", project.id)}
             >
-              ▼
+              <ArrowDown />
             </Button>
             <span className="font-semibold text-foreground min-w-8 text-center">
               {project.downvotes}
@@ -152,7 +157,7 @@ export default function ProjectFeedCard({
               className="bg-card border border-border text-muted-foreground hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all duration-200 text-sm"
               onClick={() => handleSheet(project.id, "view")}
             >
-              📋 Details
+              <Eye /> Peek
             </Button>
           </div>
         </div>
@@ -160,7 +165,7 @@ export default function ProjectFeedCard({
 
       {/* Sheet for Details / Comments */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[500px] p-2">
+        <SheetContent side="right" className="w-[300px] md:min-w-[600px] p-4">
           <SheetHeader>
             <SheetTitle>{project.name}</SheetTitle>
           </SheetHeader>

@@ -44,6 +44,8 @@ import { MultiplePhotoUpload } from "@/components/MultiplePhotoUpload";
 import { metaDataForSteps, PROJECT_STEPS } from "@/utils/constants";
 import { Textarea } from "@/components/ui/textarea";
 import { string } from "zod/v3";
+import { uploadScreenshotsToProject } from "../../project/action";
+import { useRouter } from "next/navigation";
 
 // 1️⃣ Define validation schema
 const formSchema = z.object({
@@ -63,11 +65,16 @@ type LogoData = {
   format?: string;
 };
 
+interface PhotoFile {
+  file: File;
+  preview: string;
+  id: string;
+}
+
 interface IAddProject {}
 
 export default function AddProject() {
   const [categories, setCategories] = useState<CategoryArray>([]);
-  const [assetSection, setAssetSection] = useState(false);
   const [files, setFiles] = useState<File[] | undefined>();
   const [state, formAction, isPending] = useActionState(createProject, {
     ok: false,
@@ -77,7 +84,12 @@ export default function AddProject() {
   const [filePreview, setFilePreview] = useState<string | undefined>();
   const [isLogoUploading, setIsLogoUploading] = useState(false);
   const [isLogoDeleting, setIsLogoDeleting] = useState(false);
-  const [steps, setSteps] = useState(3);
+  const [steps, setSteps] = useState(1);
+  const [existingProjectId, setExistingProjectId] = useState<
+    number | undefined
+  >(undefined);
+
+  const router = useRouter();
 
   /*  const [screenshots, setScreenshots] = useState<string[]>([]); */
 
@@ -98,7 +110,8 @@ export default function AddProject() {
     if (state.message) {
       if (state.ok) {
         toast.success(state.message);
-        setAssetSection(true);
+        setExistingProjectId(state.newProjectId);
+        setSteps((prev) => prev + 1);
         form.reset();
       } else {
         toast.error(state.message);
@@ -153,7 +166,6 @@ export default function AddProject() {
             body: formData,
           }
         );
-
         const data = await uploadRes.json();
         setLogoData(data);
         setIsLogoUploading(false);
@@ -204,6 +216,50 @@ export default function AddProject() {
     setSteps((prev) => prev - 1);
   };
 
+  const uploadScreenshots = useCallback(
+    async (photos: PhotoFile[]) => {
+      if (photos.length === 0) return;
+
+      try {
+        const res = await fetch("/api/sign-upload");
+        const { signature, timestamp, cloudName, apiKey, folder } =
+          await res.json();
+
+        const uploadPromises = photos.map(async (photo) => {
+          const formData = new FormData();
+          formData.append("file", photo.file);
+          formData.append("api_key", apiKey);
+          formData.append("timestamp", timestamp.toString());
+          formData.append("signature", signature);
+          formData.append("folder", folder);
+
+          const uploadRes = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+            { method: "POST", body: formData }
+          );
+
+          const data = await uploadRes.json();
+          return data.secure_url;
+        });
+        const uploadedUrls = await Promise.all(uploadPromises);
+
+        const { ok, message } = await uploadScreenshotsToProject(
+          uploadedUrls,
+          existingProjectId!
+        );
+        if (ok) {
+          toast.success(message);
+          router.push("/projects");
+        } else {
+          toast.error(message);
+        }
+      } catch (err) {
+        toast.error("Upload failed, please try again!");
+      }
+    },
+    [existingProjectId]
+  );
+
   return (
     <div className="flex h-[80vh] border mt-10 rounded-4xl overflow-clip">
       <section className="w-[40%] h-[100%] bg-accent hidden md:block ">
@@ -215,10 +271,10 @@ export default function AddProject() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => {
+              console.log("triggered");
               startTransition(() => {
                 formAction(values);
               });
-              setSteps((prev) => prev + 1);
             })}
             className="space-y-4 mt-6"
           >
@@ -300,7 +356,7 @@ export default function AddProject() {
 
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="tagline"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tag Line</FormLabel>
@@ -405,7 +461,7 @@ export default function AddProject() {
           <div className="flex w-full h-full justify-evenly flex-col md:flex-row">
             <>
               <div className="w-[100%]">
-                <MultiplePhotoUpload />
+                <MultiplePhotoUpload onUpload={uploadScreenshots} />
               </div>
             </>
           </div>

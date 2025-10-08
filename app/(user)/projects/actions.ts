@@ -22,10 +22,23 @@ export const getProjects = async () => {
           },
         },
       },
+      votes: true,
     },
     where: eq(project.userId, userId),
   });
-  return data;
+
+  const projectsWithVotes = data?.map((p) => {
+    const upvotes = p.votes.filter((v) => v.type === "upvote").length;
+    const downvotes = p.votes.filter((v) => v.type === "downvote").length;
+
+    return {
+      ...p,
+      upvotes,
+      downvotes,
+    };
+  });
+
+  return projectsWithVotes;
 };
 
 /* export const createProject = async (payload: typeof project.$inferInsert) => {
@@ -48,16 +61,19 @@ export async function createProject(
     desc: string;
     categoryId: string;
     url: string;
+    tagline: string;
+    logoUrl: string;
   }
 ) {
   const { userId } = await auth();
   if (!userId) {
     return { ok: false, message: "Unauthorized" };
   }
-
   const name = formData.name as string;
   const desc = formData.desc as string;
   const url = formData.url as string;
+  const tagline = formData.tagline as string;
+  const logoUrl = formData.logoUrl as string;
   const categoryId = Number(formData.categoryId);
 
   const [newProject] = await db
@@ -66,7 +82,9 @@ export async function createProject(
       name: name,
       desc: desc,
       userId: userId,
-      logoUrl: url,
+      url: url,
+      tagline: tagline,
+      logoUrl: logoUrl,
     })
     .returning({ id: project.id });
 
@@ -77,7 +95,11 @@ export async function createProject(
 
   revalidatePath("/");
 
-  return { ok: true, message: "Project created successfully!" };
+  return {
+    ok: true,
+    message: "Project created successfully!",
+    newProjectId: newProject.id,
+  };
 }
 
 export const getAllCategories = async () => {

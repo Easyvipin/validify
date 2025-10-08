@@ -2,9 +2,11 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { truncate } from "@/utils/common";
+import { DEFAULT_PROJECT_LOGO } from "@/utils/constants";
 
 type ProjectCardProps = {
   id: number;
@@ -14,7 +16,7 @@ type ProjectCardProps = {
   category?: string;
   upvotes: number;
   downvotes: number;
-  comments: number;
+  tagline: string | null;
 };
 
 export default function ProjectCard({
@@ -25,12 +27,12 @@ export default function ProjectCard({
   category,
   upvotes,
   downvotes,
-  comments,
+  tagline,
 }: ProjectCardProps) {
   return (
     <motion.div whileHover={{ scale: 1.02 }} className="relative">
       <Link href={`/project/${id}`}>
-        <Card className="relative overflow-hidden rounded-2xl shadow-lg border border-border bg-card">
+        <Card className="relative overflow-hidden rounded-2xl shadow-lg bg-card">
           {/* Category badges top right */}
           <div className="absolute top-3 right-3 flex gap-2 flex-wrap justify-end">
             {category && (
@@ -40,35 +42,44 @@ export default function ProjectCard({
             )}
           </div>
 
-          <CardHeader className="flex items-center gap-4">
-            {true && (
-              <img
-                src={"https://placehold.co/600x400"}
-                alt={name}
-                className="w-12 h-12 rounded-xl object-cover border border-border"
-              />
-            )}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground">{name}</h3>
-              <p className="text-sm text-muted-foreground">{desc}</p>
+          <CardHeader className="flex w-full items-center gap-4 flex-wrap md:flex-nowrap">
+            <img
+              src={logoUrl || DEFAULT_PROJECT_LOGO}
+              alt={name}
+              className="w-12 h-12  rounded-xl object-cover border"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = DEFAULT_PROJECT_LOGO;
+              }}
+            />
+
+            <div className="w-full self-start">
+              <h3 className="text-lg font-semibold text-foreground text-wrap">
+                alsdjakldjslkdajd;lsakd';dlkas'kl adjadlkasjdaj
+                a;ldkjaskldjasd;kajd
+              </h3>
+              {tagline && (
+                <h5 className="text-xs text-ring font-mono italic">
+                  {tagline}
+                </h5>
+              )}
             </div>
           </CardHeader>
 
           <CardContent>
+            <p className="text-sm text-muted-foreground block">
+              {truncate(desc, 600)}
+            </p>
             {/* Footer with upvotes, downvotes, comments */}
             <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
-                <span className="flex items-center gap-1">
-                  <ThumbsUp size={16} className="text-success" />
+                <span className="flex items-center justify-center gap-1 text-green-300">
+                  <ArrowUp size={16} className="" />
                   {upvotes}
                 </span>
                 <span className="flex items-center gap-1">
-                  <ThumbsDown size={16} className="text-destructive" />
+                  <ArrowDown size={16} className="text-destructive" />
                   {downvotes}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageSquare size={16} className="text-primary" />
-                  {comments}
                 </span>
               </div>
             </div>

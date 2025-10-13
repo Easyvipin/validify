@@ -179,7 +179,7 @@ export function MultiplePhotoUpload({ onUpload }: MultipleUploadType) {
           <CardContent className="p-2 text-center">
             <div className="flex flex-col items-center gap-4 text-muted-foreground">
               <ImageIcon className="h-4 w-4" />
-              <p>No photos selected yet</p>
+              <p className="text-sm">No photos selected yet</p>
             </div>
           </CardContent>
         </Card>

@@ -32,7 +32,7 @@ export default function ProjectCard({
   return (
     <motion.div whileHover={{ scale: 1.02 }} className="relative">
       <Link href={`/project/${id}`}>
-        <Card className="relative overflow-hidden rounded-2xl shadow-lg bg-card">
+        <Card className="relative overflow-hidden rounded-2xl shadow-lg bg-muted">
           {/* Category badges top right */}
           <div className="absolute top-3 right-3 flex gap-2 flex-wrap justify-end">
             {category && (
@@ -55,8 +55,7 @@ export default function ProjectCard({
 
             <div className="w-full self-start">
               <h3 className="text-lg font-semibold text-foreground text-wrap">
-                alsdjakldjslkdajd;lsakd';dlkas'kl adjadlkasjdaj
-                a;ldkjaskldjasd;kajd
+                {name}
               </h3>
               {tagline && (
                 <h5 className="text-xs text-ring font-mono italic">
@@ -73,12 +72,12 @@ export default function ProjectCard({
             {/* Footer with upvotes, downvotes, comments */}
             <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-4">
-                <span className="flex items-center justify-center gap-1 text-green-300">
+                <span className="flex items-center justify-center gap-1 text-accent-foreground">
                   <ArrowUp size={16} className="" />
                   {upvotes}
                 </span>
                 <span className="flex items-center gap-1">
-                  <ArrowDown size={16} className="text-destructive" />
+                  <ArrowDown size={16} className="text-accent-foreground" />
                   {downvotes}
                 </span>
               </div>

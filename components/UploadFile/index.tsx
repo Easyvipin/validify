@@ -1,10 +1,6 @@
 "use client";
-import {
-  Dropzone,
-  DropzoneContent,
-  DropzoneEmptyState,
-} from "@/components/ui/shadcn-io/dropzone";
-import { Children, ReactNode, useState } from "react";
+import { Dropzone } from "@/components/ui/shadcn-io/dropzone";
+import { ReactNode } from "react";
 
 type UploadFileType = {
   onDrop: (files: File[]) => void;

@@ -9,7 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { categoryIcon, DEFAULT_PROJECT_LOGO } from "@/utils/constants";
+import { DEFAULT_PROJECT_LOGO } from "@/utils/constants";
 import { click, insertClick, VoteType } from "../action";
 import { ArrowDown, ArrowUp, Eye } from "lucide-react";
 
@@ -88,8 +88,7 @@ export default function ProjectFeedCard({
 
           <div className="self-start w-[80%]">
             <h3 className="text-md font-medium text-foreground mb-1">
-              Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-              Perferendis, esse?
+              {project.name}
             </h3>
             {project.tagline && (
               <h5 className="text-xs text-ring font-mono italic">
@@ -117,35 +116,35 @@ export default function ProjectFeedCard({
           onClick={(e) => e.stopPropagation()} // prevent card navigation
         >
           {/* Voting */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             <Button
               size="sm"
-              className={`w-9 h-9 p-0 text-lg transition-all duration-200
+              className={`w-9 h-9 p-0 text-lg transition-all duration-100 hover:cursor-pointer
                 ${
                   selectedVoteType === "upvote"
-                    ? "bg-success hover:bg-success/90 text-success-foreground border-1 border-green-500"
-                    : "bg-secondary-foreground text-green-500 hover:bg-success hover:text-success-foreground hover:border-1 hover:border-green-500"
+                    ? "text-accent-foreground bg-accent hover:bg-accent border border-ring"
+                    : "text-accent-foreground bg-accent hover:bg-accent hover:border hover:border-accent-foreground"
                 }`}
               onClick={() => voteHandler("upvote", project.id)}
             >
               <ArrowUp />
             </Button>
-            <span className="font-semibold text-foreground min-w-8 text-center">
+            <span className="text-md font-light text-foreground min-w-8 text-center">
               {project.upvotes}
             </span>
             <Button
               size="sm"
-              className={`w-9 h-9 p-0 text-lg transition-all duration-200
+              className={`w-9 h-9 p-0 text-lg transition-all duration-100 hover:cursor-pointer
                 ${
                   selectedVoteType === "downvote"
-                    ? "bg-destructive/10 hover:bg-destructive/90 text-destructive-foreground border-1 border-destructive"
-                    : "bg-destructive/10 text-destructive hover:border-1 hover:border-destructive hover:bg-destructive/10"
+                    ? "text-accent-foreground bg-accent hover:bg-accent border border-ring"
+                    : "text-accent-foreground bg-accent hover:bg-accent hover:border hover:border-accent-foreground"
                 }`}
               onClick={() => voteHandler("downvote", project.id)}
             >
               <ArrowDown />
             </Button>
-            <span className="font-semibold text-foreground min-w-8 text-center">
+            <span className="text-md font-light text-foreground min-w-8 text-center">
               {project.downvotes}
             </span>
           </div>

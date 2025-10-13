@@ -31,19 +31,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CategoryArray } from "@/app/(onboarding)/onboarding/page";
-import CloudinaryUpload from "@/components/CloudinaryUpload";
 import UploadFile from "@/components/UploadFile";
-import Image from "next/image";
 import {
   DropzoneContent,
   DropzoneEmptyState,
 } from "@/components/ui/shadcn-io/dropzone";
-import { UploadIcon } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  LampDesk,
+  Unlink,
+  UploadIcon,
+  Wallpaper,
+} from "lucide-react";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { MultiplePhotoUpload } from "@/components/MultiplePhotoUpload";
-import { metaDataForSteps, PROJECT_STEPS } from "@/utils/constants";
+import { metaDataForSteps } from "@/utils/constants";
 import { Textarea } from "@/components/ui/textarea";
-import { string } from "zod/v3";
 import { uploadScreenshotsToProject } from "../../project/action";
 import { useRouter } from "next/navigation";
 
@@ -57,7 +61,7 @@ const formSchema = z.object({
   logoUrl: z.string().url("Invalid URL"),
 });
 
-type LogoData = {
+export type LogoData = {
   secure_url: string;
   public_id: string;
   width?: number;
@@ -70,8 +74,6 @@ interface PhotoFile {
   preview: string;
   id: string;
 }
-
-interface IAddProject {}
 
 export default function AddProject() {
   const [categories, setCategories] = useState<CategoryArray>([]);
@@ -88,6 +90,8 @@ export default function AddProject() {
   const [existingProjectId, setExistingProjectId] = useState<
     number | undefined
   >(undefined);
+
+  const [logoError, setLogoError] = useState(false);
 
   const router = useRouter();
 
@@ -129,6 +133,14 @@ export default function AddProject() {
     }
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (form.formState.errors.logoUrl) {
+      setLogoError(true);
+    } else {
+      setLogoError(false);
+    }
+  }, [form.formState.errors.logoUrl]);
 
   const handleDrop = async (files: File[]) => {
     console.log(files);
@@ -211,7 +223,7 @@ export default function AddProject() {
     }
   };
 
-  const decrementStep = (e) => {
+  const decrementStep = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setSteps((prev) => prev - 1);
   };
@@ -261,13 +273,14 @@ export default function AddProject() {
   );
 
   return (
-    <div className="flex h-[80vh] border mt-10 rounded-4xl overflow-clip">
-      <section className="w-[40%] h-[100%] bg-accent hidden md:block ">
-        <img className="w-full h-full" src={metaDataForSteps[steps].coverUrl} />
+    <div className="flex h-[80vh] border mt-2 rounded-md">
+      <section className="w-[40%] h-[100%] bg-accent hidden md:flex relative justify-center items-center">
+        {steps === 1 && <Unlink size="300px" />}
+        {steps === 2 && <LampDesk size="300px" />}
+        {steps === 3 && <Wallpaper size="300px" />}
       </section>
-      <div className="w-full md:w-[60%] h-full p-10 relative flex flex-col justify-center">
-        <h1 className="text-xl md:text-3xl">{metaDataForSteps[steps].label}</h1>
-
+      <div className="w-full md:w-[60%] p-10 box-border overflow-y-auto">
+        <h1 className="text-xl md:text-xl">{metaDataForSteps[steps].label}</h1>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit((values) => {
@@ -276,7 +289,7 @@ export default function AddProject() {
                 formAction(values);
               });
             })}
-            className="space-y-4 mt-6"
+            className="space-y-4 mt-4"
           >
             {steps === 1 && (
               <>
@@ -330,10 +343,12 @@ export default function AddProject() {
                 <div className="flex justify-between w-full gap-2 mt-10">
                   <Button
                     type="button"
-                    className="text-xl rounded mt-auto py-6 flex-1"
+                    className="text-sm rounded-md mt-auto"
                     onClick={(e) => handleNext(["url", "categoryId"])}
+                    variant="outline"
+                    size="lg"
                   >
-                    Next
+                    Next <ArrowRight />
                   </Button>
                 </div>
               </>
@@ -419,6 +434,7 @@ export default function AddProject() {
                             }
                             onClick={uploadLogo}
                             className="w-full"
+                            variant="outline"
                           >
                             Upload Logo {isLogoUploading && <Spinner />}
                           </Button>
@@ -434,23 +450,30 @@ export default function AddProject() {
                         )}
                       </div>
                     </div>
+                    {logoError && (
+                      <FormMessage className="border block -mt-3.5">
+                        Please Upload The logo
+                      </FormMessage>
+                    )}
                   </div>
                 </div>
-                <div className="flex justify-between w-full gap-2 mt-auto">
+                <div className="flex justify-between w-full gap-2">
                   <Button
                     type="button"
-                    className="text-xl rounded mt-auto py-6 flex-1"
+                    className="text-md rounded mt-auto py-6 flex-1"
                     disabled={isPending}
                     onClick={decrementStep}
+                    variant="outline"
                   >
                     Prev
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 text-xl rounded mt-auto py-6"
+                    className="flex-1 text-md rounded mt-auto py-6"
                     disabled={isPending}
                   >
                     {isPending ? "Creating..." : "Setup Project"}
+                    <ArrowUpRight size="20px" />
                   </Button>
                 </div>
               </>

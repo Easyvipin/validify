@@ -15,7 +15,7 @@ export const metaDataForSteps: Record<
   { label: string; coverUrl: string }
 > = {
   1: {
-    label: "Project Setup",
+    label: "URL",
     coverUrl:
       "https://res.cloudinary.com/dh9x227hi/image/upload/v1759862222/domain-names_ppkckn.svg", // Desk setup with planning materials
   },
@@ -25,7 +25,7 @@ export const metaDataForSteps: Record<
       "https://res.cloudinary.com/dh9x227hi/image/upload/v1759861929/ideas_mauekx.svg", // Notebook, laptop and planning documents
   },
   3: {
-    label: "Screenshots of your project",
+    label: "Screenshots",
     coverUrl:
       "https://res.cloudinary.com/dh9x227hi/image/upload/v1759862006/startup-marketing_pg0c10.svg", // Cloud upload concept
   },

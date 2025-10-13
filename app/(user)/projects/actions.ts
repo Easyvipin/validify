@@ -1,8 +1,8 @@
 "use server";
-import { eq, not } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import { category, project, projectCategory, user } from "@/db/schema";
+import { category, project, projectCategory } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 
@@ -25,6 +25,7 @@ export const getProjects = async () => {
       votes: true,
     },
     where: eq(project.userId, userId),
+    orderBy: desc(project.createdAt),
   });
 
   const projectsWithVotes = data?.map((p) => {
@@ -99,6 +100,49 @@ export async function createProject(
     ok: true,
     message: "Project created successfully!",
     newProjectId: newProject.id,
+  };
+}
+
+export async function updateProject(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  prevState: any,
+  formData: {
+    name: string;
+    desc: string;
+    url: string;
+    tagline: string;
+    logoUrl: string;
+    screenshots: string[];
+  }
+) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { ok: false, message: "Unauthorized" };
+  }
+  const name = formData.name as string;
+  const desc = formData.desc as string;
+  const url = formData.url as string;
+  const tagline = formData.tagline as string;
+  const logoUrl = formData.logoUrl as string;
+
+  await db
+    .update(project)
+    .set({
+      name: name,
+      desc: desc,
+      userId: userId,
+      url: url,
+      tagline: tagline,
+      logoUrl: logoUrl,
+      screenshot: formData.screenshots,
+    })
+    .returning({ id: project.id });
+
+  revalidatePath("/");
+
+  return {
+    ok: true,
+    message: "Project Updated successfully!",
   };
 }
 
